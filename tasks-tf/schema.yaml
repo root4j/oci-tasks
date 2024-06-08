@@ -1,0 +1,109 @@
+# Copyright (c) 2023, Oracle and/or its affiliates. All rights reserved.
+# Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
+
+  title: "My FSDR Infrastructure Demo"
+  description: "Creating a demo environment for Sample in an agile way"
+  schemaVersion: 1.2.0
+  version: "20240601"
+  locale: "en"
+
+#################
+# Variables
+#################
+  variableGroups:
+  - title: General Configuration
+    visible: true
+    variables:
+    - region
+    - compartment_ocid
+    - tenancy_ocid
+    - network_cidr
+
+  - title: Security Configuration
+    visible: true
+    variables:
+    - ssh_key_public
+    - ssh_key_private
+
+  - title: Resources Configuration
+    visible: true
+    variables:
+    - shape
+    - shape_cpu
+    - shape_memory
+    - shape_disk
+
+  variables:
+    region:
+      title: Region
+      description: The OCI region where the resources will be created.
+      type: oci:identity:region:name
+      required: true
+
+    compartment_ocid:
+      title: Target Compartment
+      description: The ID of the Target Compartment where to create all the resources.
+      type: oci:identity:compartment:id
+      required: true
+
+    tenancy_ocid:
+      title: Tennant
+      description: The ID of the OCI Tennat.
+      type: oci:identity:tennant:id
+      required: true
+
+    network_cidr:
+      title: CIDR Local Network
+      type: enum
+      enum:
+        - "10.0"
+        - "172.16"
+        - "192.168"
+      default: "10.0"
+      required: true
+
+    ssh_key_public:
+      title: Public SSH Key
+      description: The public ssh key for creation of the resources.
+      type: oci:core:ssh:publickey
+      required: true
+
+    ssh_key_private:
+      title: Private SSH Key
+      description: The private ssh key for creation of the resources.
+      type: file
+      required: true
+
+    shape:
+      title: VM Shape
+      type: enum
+      enum:
+        - "VM.Standard.E4.Flex"
+        - "VM.Standard.E5.Flex"
+        - "VM.Standard3.Flex"
+      default: "VM.Standard.E4.Flex"
+      required: true
+
+    shape_cpu:
+      title: OCPU per VM
+      description: Number of OCPU per VM [1 - 2]
+      type: string
+      default: "1"
+      required: true
+      pattern: ^([1-2])$
+
+    shape_memory:
+      title: Memory per VM
+      description: Number of Memory per VM [2 - 8]
+      type: string
+      default: "2"
+      required: true
+      pattern: ^([2-8])$
+
+    shape_disk:
+      title: Disk per VM
+      description: Size of disk per VM [50 - 100]
+      type: string
+      default: "50"
+      required: true
+      pattern: ^(5[0-9]|[6-9][0-9]|100)$

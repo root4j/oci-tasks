@@ -1,0 +1,43 @@
+<form [formGroup]="usersForm" validate (ngSubmit)="onSubmit()">
+  <mat-card class="shipping-card">
+    <mat-card-header>
+      <mat-card-title>Users</mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <div class="row">
+        <div class="col">
+          <mat-form-field class="full-width">
+            <input matInput placeholder="First name" formControlName="firstName">
+            @if (usersForm.controls['firstName'].hasError('required')) {
+              <mat-error>First name is <strong>required</strong></mat-error>
+            }
+          </mat-form-field>
+        </div>
+        <div class="col">
+          <mat-form-field class="full-width">
+            <input matInput placeholder="Last name" formControlName="lastName">
+            @if (usersForm.controls['lastName'].hasError('required')) {
+              <mat-error>Last name is <strong>required</strong></mat-error>
+            }
+          </mat-form-field>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col">
+          <mat-form-field class="full-width">
+            <input matInput #email placeholder="Email" formControlName="email">
+            @if (usersForm.controls['email'].hasError('required')) {
+              <mat-error>Email is <strong>required</strong></mat-error>
+            }
+            @if (usersForm.controls['email'].hasError('email')) {
+              <mat-error>Email does not have a <strong>valid format</strong></mat-error>
+            }
+          </mat-form-field>
+        </div>
+      </div>
+    </mat-card-content>
+    <mat-card-actions>
+      <button mat-raised-button color="primary" [disabled]="usersForm.invalid" type="submit">Submit</button>
+    </mat-card-actions>
+  </mat-card>
+</form>

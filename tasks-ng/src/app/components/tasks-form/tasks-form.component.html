@@ -1,0 +1,46 @@
+<form [formGroup]="taskForm" novalidate (ngSubmit)="onSubmit()">
+  <mat-card class="shipping-card">
+    <mat-card-header>
+      <mat-card-title>Task</mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <div class="row">
+        <div class="col">
+          <mat-form-field class="full-width">
+            <input matInput placeholder="Title" formControlName="title">
+            @if (taskForm.controls['title'].hasError('required')) {
+            <mat-error>Title is <strong>required</strong></mat-error>
+            }
+          </mat-form-field>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col">
+          <mat-form-field class="full-width">
+            <textarea matInput placeholder="Description" formControlName="description"></textarea>
+            @if (taskForm.controls['description'].hasError('required')) {
+            <mat-error>description is <strong>required</strong></mat-error>
+            }
+          </mat-form-field>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col">
+          <mat-form-field class="full-width">
+            <mat-select placeholder="User" formControlName="userId">
+              @for (user of users; track user) {
+              <mat-option [value]="user.id">{{ user.firstName }} {{user.lastName}}</mat-option>
+              }
+            </mat-select>
+            @if (taskForm.controls['userId'].hasError('required')) {
+            <mat-error>User is <strong>required</strong></mat-error>
+            }
+          </mat-form-field>
+        </div>
+      </div>
+    </mat-card-content>
+    <mat-card-actions>
+      <button mat-raised-button color="primary" type="submit">Submit</button>
+    </mat-card-actions>
+  </mat-card>
+</form>
