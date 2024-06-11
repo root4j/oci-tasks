@@ -1,6 +1,5 @@
 import { HttpClient } from "@angular/common/http";
 import { Observable } from "rxjs";
-import { MyIP } from "../api/api";
 
 export class Crud<T> {
     protected apiUrl = `${this.baseUrl}${this.uriComplement}`;
@@ -8,13 +7,7 @@ export class Crud<T> {
         protected readonly http: HttpClient,
         protected readonly uriComplement: string,
         protected baseUrl: string = 'http://localhost:8080/'
-    ) {
-        // TODO: Comment this code on localhost
-        this.http.get<MyIP>('https://api.ipify.org/?format=json').subscribe(data => {
-            this.baseUrl = `http://${data.ip}:8080/`;
-            this.apiUrl = `${this.baseUrl}${this.uriComplement}`;
-        });
-    }
+    ) {}
 
     create(body: T): Observable<T> {
         return this.http.post<T>(this.apiUrl, body);

@@ -1,7 +1,3 @@
-export interface MyIP {
-    ip?: string
-}
-
 export interface Task {
     id?: number
     title?: string

@@ -13,6 +13,7 @@ import { UsersTasksComponent } from "../users-tasks/users-tasks.component";
 @Component({
   selector: 'app-users',
   templateUrl: './users.component.html',
+  styleUrl: './users.component.css',
   standalone: true,
   imports: [
     MatButtonModule,

@@ -23,8 +23,8 @@ provider "oci" {
 # +----------------------+
 resource "oci_identity_compartment" "my_comp" {
     compartment_id = var.compartment_ocid
-    description    = "Compartment demo for FSDR solution"
-    name           = "demo"
+    description    = "Compartment demo for Task solution"
+    name           = "task"
 }
 # +--------------+
 # | Data Sources |
@@ -46,13 +46,13 @@ data "oci_core_images" "shape_oracle_linux" {
 resource "oci_core_vcn" "my_vcn" {
 	compartment_id = oci_identity_compartment.my_comp.id
 	cidr_block     = "${var.network_cidr}.0.0/16"
-	display_name   = "My FSDR VCN"
-	dns_label      = "fsdr"
+	display_name   = "My VCN"
+	dns_label      = "task"
 }
 
 resource "oci_core_internet_gateway" "my_internet_gateway" {
     compartment_id = oci_identity_compartment.my_comp.id
-	display_name   = "My FSDR Internet Gateway"
+	display_name   = "My Internet Gateway"
 	enabled        = "true"
 	vcn_id         = oci_core_vcn.my_vcn.id
 }
@@ -60,7 +60,7 @@ resource "oci_core_internet_gateway" "my_internet_gateway" {
 resource "oci_core_default_route_table" "route_table_public" {
     manage_default_resource_id = oci_core_vcn.my_vcn.default_route_table_id
 	compartment_id             = oci_identity_compartment.my_comp.id
-	display_name               = "My Public FSDR Route Table"
+	display_name               = "My Public Route Table"
 
 	route_rules {
 		destination       = "0.0.0.0/0"
@@ -72,7 +72,7 @@ resource "oci_core_default_route_table" "route_table_public" {
 resource "oci_core_default_security_list" "security_list_public" {
 	manage_default_resource_id = oci_core_vcn.my_vcn.default_security_list_id
 	compartment_id             = oci_identity_compartment.my_comp.id
-	display_name               = "My Public FSDR Security List"
+	display_name               = "My Public Security List"
 
 	egress_security_rules {
 		destination      = "0.0.0.0/0"
@@ -102,7 +102,7 @@ resource "oci_core_default_security_list" "security_list_public" {
 
 resource "oci_core_subnet" "my_public_subnet" {
 	cidr_block          = "${var.network_cidr}.0.0/24"
-	display_name        = "My Public FSDR Subnet"
+	display_name        = "My Public Subnet"
 	dns_label           = "pub"
 	security_list_ids   = [oci_core_vcn.my_vcn.default_security_list_id]
 	compartment_id      = oci_identity_compartment.my_comp.id
@@ -151,13 +151,27 @@ resource "oci_core_network_security_group_security_rule" "my_nsg_app_srv_rule_00
         }
     }
 }
+
+resource "oci_core_network_security_group_security_rule" "my_nsg_app_srv_rule_002" {
+    network_security_group_id = oci_core_network_security_group.my_nsg_app_srv.id
+    direction                 = "INGRESS"
+    protocol                  = "6"
+    source                    = "0.0.0.0/0"
+    source_type               = "CIDR_BLOCK"
+    stateless                 = "false"
+    tcp_options {
+        destination_port_range {
+            max = "8080"
+            min = "8080"
+        }
+    }
+}
 # +-----------------+
 # | Local Variables |
 # +-----------------+
 locals {
 	all_images = data.oci_core_images.shape_oracle_linux.images
 	compartment_images = [for image in local.all_images : image.id if length(regexall("Oracle-Linux-[0-9].[0-9]-20[0-9]*",image.display_name)) > 0 ]
-    script_app = "c3VkbyAtc3Ugcm9vdApzdWRvIGNhdCA8PEVPRiA+IC9ldGMvc3lzdGVtZC9zeXN0ZW0vdGFzay1hcGkuc2VydmljZQpbVW5pdF0KRGVzY3JpcHRpb249U3ByaW5nIEJvb3QgVGFzayBBUEkgU2VydmljZQoKW1NlcnZpY2VdClR5cGU9c2ltcGxlClJlc3RhcnQ9b24tZmFpbHVyZQpVc2VyPW9wYwpFeGVjU3RhcnQ9L2hvbWUvb3BjL3Rhc2tzCgpbSW5zdGFsbF0gCldhbnRlZEJ5PW11bHRpLXVzZXIudGFyZ2V0CkVPRgpleGl0CnN1ZG8gc3lzdGVtY3RsIGRhZW1vbi1yZWxvYWQKc3VkbyBzeXN0ZW1jdGwgZW5hYmxlIC0tbm93IHRhc2stYXBpCnN1ZG8gc3lzdGVtY3RsIHN0YXR1cyB0YXNrLWFwaQ=="
 }
 # +-----------+
 # | Instances |
@@ -250,11 +264,8 @@ resource "null_resource" "remote_exec_db_srv" {
 			"sudo firewall-cmd --zone=public --add-port=22/tcp --permanent",
 			"sudo firewall-cmd --zone=public --add-port=5432/tcp --permanent",
 			"sudo firewall-cmd --reload",
-			"sudo -u postgres psql --command=\"CREATE USER fsdr_user WITH CREATEDB CREATEROLE PASSWORD '0cI_F$dR_D3m0**';\"",
-			"sudo -u postgres psql --command=\"CREATE DATABASE fsdr_db OWNER fsdr_user;\"",
-            "sudo sed -i \"s|#listen_addresses = 'localhost'|listen_addresses = '*'|g\" /var/lib/pgsql/15/data/postgresql.conf",
-            "sudo -u postgres cat >> /var/lib/pgsql/15/data/pg_hba.conf << EOF\n# specify network range you allow to connect on [ADDRESS] section\nhost    all             all             ${var.network_cidr}.0.0/16             scram-sha-256\nEOF",
-            "sudo systemctl restart postgresql-15",
+			"sudo -u postgres psql --command=\"CREATE USER task_user WITH CREATEDB CREATEROLE PASSWORD '0cI_TaSk_D3m0--';\"",
+			"sudo -u postgres psql --command=\"CREATE DATABASE task_db OWNER task_user;\"",
         ]
     }
 }
@@ -278,15 +289,6 @@ resource "null_resource" "remote_exec_app_srv" {
 			"sudo firewall-cmd --zone=public --add-port=80/tcp --permanent",
 			"sudo firewall-cmd --zone=public --add-port=8080/tcp --permanent",
             "sudo firewall-cmd --reload",
-            "wget https://objectstorage.us-phoenix-1.oraclecloud.com/p/8KNUfmpGEfBd-RiFctH4sqoTf2tX24UOBGmzfQ2_XK7TkI1zfFr7Pf6YAi61TS28/n/axr56g2p0aha/b/root4j/o/tasks-web.zip",
-            "wget https://objectstorage.us-phoenix-1.oraclecloud.com/p/NyV_p5QaW7Tocv_PgJxs3RmZwY-tNZ4_yEiGC-NwJivpH4dKJVIWXGplIOen5bH7/n/axr56g2p0aha/b/root4j/o/tasks",
-            "chmod 755 tasks",
-            "unzip tasks-web.zip",
-            "sudo rm -f /usr/share/nginx/html/*.*",
-            "sudo cp -R /home/opc/tasks-web/* /usr/share/nginx/html",
-            "base64 -d <<< \"${local.script_app}\" > /home/opc/install.sh",
-            "chmod +x /home/opc/install.sh",
-            "/home/opc/install.sh",
         ]
     }
 }

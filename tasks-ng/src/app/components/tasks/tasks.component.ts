@@ -11,6 +11,7 @@ import { TaskService } from "../../services/api.service";
 @Component({
   selector: 'app-tasks',
   templateUrl: './tasks.component.html',
+  styleUrl: './tasks.component.css',
   standalone: true,
   imports: [
     MatButtonModule,

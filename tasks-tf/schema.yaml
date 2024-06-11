@@ -1,7 +1,7 @@
-# Copyright (c) 2023, Oracle and/or its affiliates. All rights reserved.
+# Copyright (c) 2024, Oracle and/or its affiliates. All rights reserved.
 # Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
 
-  title: "My FSDR Infrastructure Demo"
+  title: "My Task Infrastructure Demo"
   description: "Creating a demo environment for Sample in an agile way"
   schemaVersion: 1.2.0
   version: "20240601"
@@ -94,11 +94,11 @@
 
     shape_memory:
       title: Memory per VM
-      description: Number of Memory per VM [2 - 8]
+      description: Number of Memory per VM [2 - 32]
       type: string
       default: "2"
       required: true
-      pattern: ^([2-8])$
+      pattern: ^([2-9]|[12][0-9]|3[0-2])$
 
     shape_disk:
       title: Disk per VM
