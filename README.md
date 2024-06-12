@@ -37,10 +37,7 @@ cat << EOF > $HOME/.config/systemd/user/task-api.service
 Description=Spring Boot Task API Service
 
 [Service]
-Type=simple
-Restart=on-failure
-User=opc
-ExecStart=$HOME/.sdkman/candidates/java/current/bin/java -jar /home/opc/tasks.jar --my.server.name=db.pub.task.oraclevcn.com
+ExecStart=/home/opc/.sdkman/candidates/java/current/bin/java -jar /home/opc/tasks.jar --my.server.name=db.pub.task.oraclevcn.com
 
 [Install] 
 WantedBy=multi-user.target
