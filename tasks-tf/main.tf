@@ -292,7 +292,7 @@ resource "null_resource" "remote_exec_app_srv" {
             "sudo useradd -m -d /opt/tomcat -U -s /bin/false tomcat",
             "wget https://dlcdn.apache.org/tomcat/tomcat-10/v10.1.24/bin/apache-tomcat-10.1.24.tar.gz -O /tmp/tomcat-10.tar.gz",
             "sudo -u tomcat tar -xzvf /tmp/tomcat-10.tar.gz --strip-components=1 -C /opt/tomcat",
-            "wget https://github.com/root4j/oci-tasks/releases/download/1.0/web.war",
+            "wget https://github.com/root4j/oci-tasks/releases/download/1.0/tasks.war",
             "wget https://github.com/root4j/oci-tasks/releases/download/1.0/web.zip",
             "unzip web.zip",
             "sudo rm -f /var/www/html/*.*",
