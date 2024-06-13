@@ -1,10 +1,10 @@
 # OCI Tasks Demo
 Example to deploy in OCI a simple task application made in Java + Angular, with a Postgres database server.
 
-[![Tools](https://skillicons.dev/icons?i=github,linux,java,spring,maven,hibernate,nginx,angular,ts,postgres,terraform,vscode&theme=dark)](https://www.linkedin.com/in/root4j/)
+[![Tools](https://skillicons.dev/icons?i=github,linux,java,spring,maven,hibernate,angular,ts,postgres,terraform,vscode&theme=dark)](https://www.linkedin.com/in/root4j/)
 
 ## Execute Terraform Template
-[![Deploy to Oracle Cloud](https://oci-resourcemanager-plugin.plugins.oci.oraclecloud.com/latest/deploy-to-oracle-cloud.svg)](https://cloud.oracle.com/resourcemanager/stacks/create?zipUrl=https://github.com/root4j/oci-tasks/releases/download/1.0/terraform.zip)
+[![Deploy to Oracle Cloud](https://oci-resourcemanager-plugin.plugins.oci.oraclecloud.com/latest/deploy-to-oracle-cloud.svg)](https://cloud.oracle.com/resourcemanager/stacks/create?zipUrl=https://github.com/root4j/oci-tasks/releases/download/1.0/Tasks.zip)
 
 ## Execute Script in db VM
 ```bash
@@ -21,30 +21,36 @@ sudo systemctl status postgresql-15
 
 ## Execute Script in app VM
 ```bash
-curl -s "https://get.sdkman.io" | bash
-source "$HOME/.sdkman/bin/sdkman-init.sh"
-sdk install java 21.0.3-graal
-wget https://github.com/root4j/oci-tasks/releases/download/1.0/tasks.jar
-wget https://github.com/root4j/oci-tasks/releases/download/1.0/web.zip
-chmod +x tasks.jar
-unzip web.zip
-sudo rm -f /usr/share/nginx/html/*.*
-sudo cp -R $HOME/web/* /usr/share/nginx/html
-sudo sed -i "s|http://localhost:8080/|http://$(curl -s ipinfo.io/ip):8080/|g" /usr/share/nginx/html/main-AJTMVIE2.js
-mkdir -p $HOME/.config/systemd/user
-cat << EOF > $HOME/.config/systemd/user/task-api.service
+sudo -su root
+cp /home/opc/tasks.war /opt/tomcat/webapps/
+cat <<EOF > /etc/systemd/system/tomcat.service
 [Unit]
-Description=Spring Boot Task API Service
+Description=Apache Tomcat
+After=network.target
 
 [Service]
-ExecStart=/home/opc/.sdkman/candidates/java/current/bin/java -jar /home/opc/tasks.jar --my.server.name=db.pub.task.oraclevcn.com
+Type=forking
 
-[Install] 
+User=tomcat
+Group=tomcat
+
+Environment=JAVA_HOME=/usr/lib/jvm/jre
+Environment=CATALINA_PID=/opt/tomcat/tomcat.pid
+Environment=CATALINA_HOME=/opt/tomcat
+Environment=CATALINA_BASE=/opt/tomcat
+Environment="CATALINA_OPTS=-Xms512M -Xmx1024M -server -XX:+UseParallelGC"
+
+ExecStart=/opt/tomcat/bin/startup.sh
+ExecStop=/opt/tomcat/bin/shutdown.sh
+
+ExecReload=/bin/kill $MAINPID
+RemainAfterExit=yes
+
+[Install]
 WantedBy=multi-user.target
 EOF
-systemctl --user daemon-reload
-systemctl --user enable --now task-api
-systemctl --user start task-api
-systemctl --user status task-api
-journalctl -t task-api
+systemctl daemon-reload
+systemctl enable --now tomcat
+systemctl status tomcat
+exit
 ```
