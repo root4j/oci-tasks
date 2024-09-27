@@ -287,7 +287,7 @@ resource "null_resource" "remote_exec_app_srv" {
             "sudo -u tomcat tar -xzvf /tmp/tomcat-10.tar.gz --strip-components=1 -C /opt/tomcat",
             "wget https://github.com/root4j/oci-tasks/releases/download/2.0/tasks.war",
             "wget https://github.com/root4j/oci-tasks/releases/download/2.0/web.zip",
-            "unzip web.zip",
+            "unzip web.zip -d web",
             "sudo rm -f /var/www/html/*.*",
             "sudo cp -R $HOME/web/* /var/www/html",
             "sudo sed -i \"s|http://localhost:8080/|http://$(curl -s ipinfo.io/ip):8080/tasks/|g\" /var/www/html/main-5MHLNSMR.js",
