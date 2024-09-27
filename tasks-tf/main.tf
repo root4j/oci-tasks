@@ -18,24 +18,17 @@ provider "oci" {
     tenancy_ocid = var.tenancy_ocid
     region       = var.region
 }
-# +----------------------+
-# | Solution Compartment |
-# +----------------------+
-resource "oci_identity_compartment" "my_comp" {
-    compartment_id = var.compartment_ocid
-    description    = "Compartment demo for Task solution"
-    name           = "task"
-}
 # +--------------+
 # | Data Sources |
 # +--------------+
 data "oci_identity_availability_domains" "rad" {
-	compartment_id = oci_identity_compartment.my_comp.id
+	compartment_id = var.compartment_ocid
 }
 
 data "oci_core_images" "shape_oracle_linux" {
-	compartment_id           = oci_identity_compartment.my_comp.id
+	compartment_id           = var.compartment_ocid
 	operating_system         = "Oracle Linux"
+    shape                    = var.shape
 	operating_system_version = "8"
 	sort_by                  = "TIMECREATED"
 	sort_order               = "DESC"
@@ -44,14 +37,14 @@ data "oci_core_images" "shape_oracle_linux" {
 # | Creation of the Network |
 # +-------------------------+
 resource "oci_core_vcn" "my_vcn" {
-	compartment_id = oci_identity_compartment.my_comp.id
+	compartment_id = var.compartment_ocid
 	cidr_block     = "${var.network_cidr}.0.0/16"
 	display_name   = "My VCN"
 	dns_label      = "task"
 }
 
 resource "oci_core_internet_gateway" "my_internet_gateway" {
-    compartment_id = oci_identity_compartment.my_comp.id
+    compartment_id = var.compartment_ocid
 	display_name   = "My Internet Gateway"
 	enabled        = "true"
 	vcn_id         = oci_core_vcn.my_vcn.id
@@ -59,7 +52,7 @@ resource "oci_core_internet_gateway" "my_internet_gateway" {
 
 resource "oci_core_default_route_table" "route_table_public" {
     manage_default_resource_id = oci_core_vcn.my_vcn.default_route_table_id
-	compartment_id             = oci_identity_compartment.my_comp.id
+	compartment_id             = var.compartment_ocid
 	display_name               = "My Public Route Table"
 
 	route_rules {
@@ -71,7 +64,7 @@ resource "oci_core_default_route_table" "route_table_public" {
 
 resource "oci_core_default_security_list" "security_list_public" {
 	manage_default_resource_id = oci_core_vcn.my_vcn.default_security_list_id
-	compartment_id             = oci_identity_compartment.my_comp.id
+	compartment_id             = var.compartment_ocid
 	display_name               = "My Public Security List"
 
 	egress_security_rules {
@@ -105,13 +98,13 @@ resource "oci_core_subnet" "my_public_subnet" {
 	display_name        = "My Public Subnet"
 	dns_label           = "pub"
 	security_list_ids   = [oci_core_vcn.my_vcn.default_security_list_id]
-	compartment_id      = oci_identity_compartment.my_comp.id
+	compartment_id      = var.compartment_ocid
 	vcn_id              = oci_core_vcn.my_vcn.id
 	route_table_id      = oci_core_vcn.my_vcn.default_route_table_id
 }
 
 resource "oci_core_network_security_group" "my_nsg_db_srv" {
-    compartment_id = oci_identity_compartment.my_comp.id
+    compartment_id = var.compartment_ocid
     vcn_id         = oci_core_vcn.my_vcn.id
     display_name   = "My NSG DB Server"
 }
@@ -132,7 +125,7 @@ resource "oci_core_network_security_group_security_rule" "my_nsg_db_srv_rule_001
 }
 
 resource "oci_core_network_security_group" "my_nsg_app_srv" {
-    compartment_id = oci_identity_compartment.my_comp.id
+    compartment_id = var.compartment_ocid
     vcn_id         = oci_core_vcn.my_vcn.id
     display_name   = "My NSG App Server"
 }
@@ -178,7 +171,7 @@ locals {
 # +-----------+
 resource "oci_core_instance" "db_srv" {
     availability_domain = data.oci_identity_availability_domains.rad.availability_domains.0.name
-    compartment_id      = oci_identity_compartment.my_comp.id
+    compartment_id      = var.compartment_ocid
     display_name        = "db"
     fault_domain        = "FAULT-DOMAIN-1"
 
@@ -203,14 +196,14 @@ resource "oci_core_instance" "db_srv" {
 
     source_details {
         source_type             = "image"
-        source_id               = local.compartment_images.0
+        source_id               = local.all_images.0.id
         boot_volume_size_in_gbs = var.shape_disk
     }
 }
 
 resource "oci_core_instance" "app_srv" {
     availability_domain = data.oci_identity_availability_domains.rad.availability_domains.0.name
-    compartment_id      = oci_identity_compartment.my_comp.id
+    compartment_id      = var.compartment_ocid
     display_name        = "app"
     fault_domain        = "FAULT-DOMAIN-1"
 
@@ -235,7 +228,7 @@ resource "oci_core_instance" "app_srv" {
 
     source_details {
         source_type             = "image"
-        source_id               = local.compartment_images.0
+        source_id               = local.all_images.0.id
         boot_volume_size_in_gbs = var.shape_disk
     }
 }
@@ -290,14 +283,14 @@ resource "null_resource" "remote_exec_app_srv" {
             "sudo firewall-cmd --zone=public --add-port=22/tcp --permanent",
             "sudo firewall-cmd --reload",
             "sudo useradd -m -d /opt/tomcat -U -s /bin/false tomcat",
-            "wget https://dlcdn.apache.org/tomcat/tomcat-10/v10.1.24/bin/apache-tomcat-10.1.24.tar.gz -O /tmp/tomcat-10.tar.gz",
+            "wget https://archive.apache.org/dist/tomcat/tomcat-10/v10.1.30/bin/apache-tomcat-10.1.30.tar.gz -O /tmp/tomcat-10.tar.gz",
             "sudo -u tomcat tar -xzvf /tmp/tomcat-10.tar.gz --strip-components=1 -C /opt/tomcat",
-            "wget https://github.com/root4j/oci-tasks/releases/download/1.0/tasks.war",
-            "wget https://github.com/root4j/oci-tasks/releases/download/1.0/web.zip",
+            "wget https://github.com/root4j/oci-tasks/releases/download/2.0/tasks.war",
+            "wget https://github.com/root4j/oci-tasks/releases/download/2.0/web.zip",
             "unzip web.zip",
             "sudo rm -f /var/www/html/*.*",
             "sudo cp -R $HOME/web/* /var/www/html",
-            "sudo sed -i \"s|http://localhost:8080/|http://$(curl -s ipinfo.io/ip):8080/tasks/|g\" /var/www/html/main-AJTMVIE2.js",
+            "sudo sed -i \"s|http://localhost:8080/|http://$(curl -s ipinfo.io/ip):8080/tasks/|g\" /var/www/html/main-5MHLNSMR.js",
         ]
     }
 }

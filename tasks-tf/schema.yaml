@@ -4,7 +4,7 @@
   title: "My Task Infrastructure Demo"
   description: "Creating a demo environment for Sample in an agile way"
   schemaVersion: 1.2.0
-  version: "20240601"
+  version: "20240901"
   locale: "en"
 
 #################

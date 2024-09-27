@@ -4,9 +4,13 @@ Example to deploy in OCI a simple task application made in Java + Angular, with 
 [![Tools](https://skillicons.dev/icons?i=github,linux,java,spring,maven,hibernate,angular,ts,postgres,terraform,vscode&theme=dark)](https://www.linkedin.com/in/root4j/)
 
 ## Execute Terraform Template
-[![Deploy to Oracle Cloud](https://oci-resourcemanager-plugin.plugins.oci.oraclecloud.com/latest/deploy-to-oracle-cloud.svg)](https://cloud.oracle.com/resourcemanager/stacks/create?zipUrl=https://github.com/root4j/oci-tasks/releases/download/1.0/Tasks.zip)
+[![Deploy to Oracle Cloud](https://oci-resourcemanager-plugin.plugins.oci.oraclecloud.com/latest/deploy-to-oracle-cloud.svg)](https://cloud.oracle.com/resourcemanager/stacks/create?zipUrl=https://github.com/root4j/oci-tasks/releases/download/2.0/Tasks.zip)
 
-## Execute Script in db VM
+## Execute Scripts in VMs
+To execute the following steps you must connect to the resources created in OCI by ssh with the key that you used in their deployment.
+
+### Execute Script in db VM
+To execute the following steps you must connect to the resources created in OCI by ssh with the key that you used in their deployment.
 ```bash
 sudo sed -i "s|#listen_addresses = 'localhost'|listen_addresses = '*'|g" /var/lib/pgsql/15/data/postgresql.conf
 sudo su postgres
@@ -19,7 +23,7 @@ sudo systemctl restart postgresql-15
 sudo systemctl status postgresql-15
 ```
 
-## Execute Script in app VM
+### Execute Script in app VM
 ```bash
 sudo -su root
 cp /home/opc/tasks.war /opt/tomcat/webapps/
